@@ -96,6 +96,76 @@ MongoDB and Mongo Express were connected to the same custom Docker network.
 Inside this network, Mongo Express could reach MongoDB using the container name:
 This demonstrated that containers on the same Docker network communicate using container or service names instead of host IP addresses.
 
+### 4.Managing Services with Docker Compose
+
+After running the containers manually, I used Docker Compose to describe and manage MongoDB and Mongo Express in one configuration file.
+
+Start the services:
+
+`docker compose -f docker-compose.yaml up .`
+
+Check their status:
+
+`docker compose ps`
+
+View their logs:
+
+`docker compose logs -f`
+
+Stop the services:
+
+`docker compose down`
+
+At this stage, Docker Compose started MongoDB and Mongo Express, while the Node.js application could still be started locally from the `app` directory.
+
+## Building the Application Image
+
+I used the Dockerfile to package the Node.js application and its dependencies into a Docker image:
+
+`docker build -t my-app:1.0 .`
+
+I then checked that image was created:
+
+`docker image my-app`
+
+The resulting image contains:
+
+- the Node.js runtime;
+- the application source code;
+- npm dependencies;
+- the command required to start the application.
+
+When the application runs inside Docker Compose, it must connect to MongoDB using the Compose service name:
+
+`mongodb://admin:password@mongodb`
+
+It must not use `localhost`, because `localhost` inside the application container refers to the application container itself.
+
+## Private Nexus Docker Registry
+
+For the Private Nexus Registry I created EC2 Instance in AWS and configured a Docker-hosted repository in Nexus and used it as a private Docker image registry.
+
+The Nexus services used:
+
+- port `8081` for the Nexus UI;
+- port `8083` fo the Docker-hosted repository.
+
+### Authenticate with the Registry
+
+```bash
+`docker login <nexus-host>:8083`
+```
+
+This command authenticates the local Docker client with the private Docker registry.
+Also configured a file /etc/docker/daemon.json to connect to the repository via http
+
+`
+{
+	"insecure-registries" : ["<repostiry-host>:8083"]
+}
+`
+
+
 ## demo app - developing with Docker
 
 This demo app shows a simple user profile app set up using 
