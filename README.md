@@ -241,3 +241,118 @@ Step 5: access the nodejs application from browser
     docker build -t my-app:1.0 .       
     
 The dot "." at the end of the command denotes location of the Dockerfile.
+
+## Amazon ECR — Private Docker Registry
+
+As part of the AWS Services module of the TechWorld with Nana DevOps Bootcamp, I extended this Docker project by using **Amazon Elastic Container Registry (ECR)** to store and manage Docker images in AWS.
+
+The goal was to create a private ECR repository, build Docker images locally, and push two different versions of the application to the registry.
+
+### 1. Creating a Private ECR Repository
+
+I created a private repository through the AWS Management Console with the following configuration:
+
+- **Repository name:** `devops-bootcamp/js-app`
+- **AWS Region:** `eu-central-1` (Frankfurt)
+- **Image tag mutability:** Mutable
+- **Encryption:** AES-256
+
+### 2. Authenticating Docker with Amazon ECR
+
+First, I installed AWS CLI v2 on my local Linux machine and authenticated using an existing IAM user through a named AWS CLI profile.
+
+```bash
+aws login --profile devops-bootcamp --region eu-central-1
+```
+
+I verified the AWS identity:
+
+```bash
+aws sts get-caller-identity --profile devops-bootcamp
+```
+
+Then I authenticated Docker with the private ECR registry:
+
+```bash
+aws ecr get-login-password \
+  --region eu-central-1 \
+  --profile devops-bootcamp \
+| docker login \
+  --username AWS \
+  --password-stdin \
+  <account-id>.dkr.ecr.eu-central-1.amazonaws.com
+```
+
+This uses a temporary authentication token obtained through AWS CLI.
+
+### 3. Building and Pushing the First Docker Image
+
+I reused the existing Node.js application and Dockerfile from the Docker module.
+
+First, I built the image locally:
+
+```bash
+docker build -t js-app:ecr-demo .
+```
+
+Then I tagged the image with the ECR repository address:
+
+```bash
+docker tag js-app:ecr-demo \
+  <account-id>.dkr.ecr.eu-central-1.amazonaws.com/devops-bootcamp/js-app:ecr-demo
+```
+
+Finally, I pushed the image to Amazon ECR:
+
+```bash
+docker push \
+  <account-id>.dkr.ecr.eu-central-1.amazonaws.com/devops-bootcamp/js-app:ecr-demo
+```
+
+The image was successfully uploaded and became available in the private ECR repository.
+
+### 4. Building and Pushing a Second Version
+
+To practice managing different image versions, I made a small change to the application.
+
+In `app/index.html`, I updated the page heading to:
+
+`User Profile - ECR Demo v2`
+
+I rebuilt the application with a new image tag:
+
+```bash
+docker build -t js-app:ecr-demo-v2 .
+```
+
+Then I tagged and pushed the updated image to the same ECR repository:
+
+```bash
+docker tag js-app:ecr-demo-v2 \
+  <account-id>.dkr.ecr.eu-central-1.amazonaws.com/devops-bootcamp/js-app:ecr-demo-v2
+
+docker push \
+  <account-id>.dkr.ecr.eu-central-1.amazonaws.com/devops-bootcamp/js-app:ecr-demo-v2
+```
+
+### 5. Final Result
+
+Both Docker images were successfully pushed to Amazon ECR:
+
+- `ecr-demo` — initial application version.
+- `ecr-demo-v2` — updated application version.
+
+I verified both image tags in the AWS ECR Console.
+
+![Docker images stored in Amazon ECR](screenshots/ecr-images.png)
+
+### What I Learned
+
+- Creating and configuring a private Amazon ECR repository.
+- Authenticating AWS CLI using an IAM user and named profile.
+- Authenticating Docker with ECR using temporary credentials.
+- Building and tagging Docker images for a private registry.
+- Pushing different versions of an application to the same repository.
+- Understanding the difference between `docker build`, `docker tag`, and `docker push`.
+
+This demo helped me understand how Docker images can be stored and versioned in AWS, building on my previous experience with Docker Hub and Nexus Repository.
