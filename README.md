@@ -344,6 +344,8 @@ Both Docker images were successfully pushed to Amazon ECR:
 
 I verified both image tags in the AWS ECR Console.
 
+![Docker images stored in Amazon ECR](screenshots/ecr-images.png)
+
 ### What I Learned
 
 - Creating and configuring a private Amazon ECR repository.
@@ -354,7 +356,3 @@ I verified both image tags in the AWS ECR Console.
 - Understanding the difference between `docker build`, `docker tag`, and `docker push`.
 
 This demo helped me understand how Docker images can be stored and versioned in AWS, building on my previous experience with Docker Hub and Nexus Repository.
-
-#### Final results
-
-![Docker images stored in Amazon ECR](screenshots/ecr-images.png)
